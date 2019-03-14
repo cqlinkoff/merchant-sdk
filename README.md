@@ -57,7 +57,26 @@
 ## 6.接口说明
 ### 1. 商户支付
 #### 序列图
-![avatar](https://raw.githubusercontent.com/cqlinkoff/merchant-sdk/master/Images/pay.png)
+``` mermaid
+sequenceDiagram
+participant APP
+participant SDK
+participant 平台
+
+APP->>SDK: 发起预支付请求
+activate SDK
+SDK->>SDK: SDK加密预支付请求(getEncrypy)
+activate 平台
+SDK->>平台: 发起预支付请求(doPost)
+平台->>平台: 验签并入库
+平台-->>SDK: 预支付数据
+deactivate 平台
+SDK->>SDK: SDK解密(getDecrypt)
+SDK->>SDK: SDK加签名(getOrderInfo)
+SDK-->>APP: 预支付数据
+deactivate SDK
+平台--x SDK: 异步调用回调接口，返回订单状态
+```
 
 #### SDK说明
 1. 预支付请求构造: com.client.sdk.request.PrePayCommand
@@ -144,8 +163,30 @@
 
 #### 序列图
 
-![avatar](https://raw.githubusercontent.com/cqlinkoff/merchant-sdk/master/Images/withdraw.png)
+``` mermaid
+sequenceDiagram
+participant APP
+participant SDK
+participant 平台
 
+APP->>SDK: 发起提现请求
+activate SDK
+SDK->>平台: 获取币种信息(getCoin)
+activate 平台
+平台-->>SDK: 返回币种信息
+SDK->>平台: 获取签名数据(getSignTx)
+平台-->>SDK: 返回签名数据
+deactivate 平台
+SDK->>SDK: SDK签名加密(getEncrypy)
+SDK->>平台: 提现请求(doPost)
+activate 平台
+平台-->>SDK: 返回提现数据
+deactivate 平台
+SDK->>SDK: SDK解密(getDecrypt)
+SDK-->> APP: 提现订单数据
+deactivate SDK
+平台--x SDK: 异步调用回调接口，返回订单状态
+```
 #### SDK说明
 1. 提现方法类: com.client.sdk.request.TransactionCommand
 - 构造方法
